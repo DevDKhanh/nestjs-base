@@ -52,7 +52,7 @@ export class AccountsService {
     };
   }
 
-  async findById(id: string) {
+  async findById(id: number) {
     const account = await this.accountRepository.findOne({
       where: { id },
       select: ['id', 'username', 'fullName', 'email', 'phone'],

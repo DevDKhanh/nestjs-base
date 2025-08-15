@@ -7,3 +7,11 @@ export abstract class BaseEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }
+
+export interface JwtData {
+  id: number;
+  email: string;
+  username: string;
+  isAdmin: boolean;
+  fullname: string;
+}

@@ -10,15 +10,17 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoggerMiddleware } from './middleware/logger.middleware';
-import { WinstonModule } from 'nest-winston';
-import winston from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
-import { SharedModule } from './shared/shared.module';
+import { LoggerMiddleware } from './core/middleware/logger.middleware';
+
 import { RefeshTokenModule } from './modules/refesh-token/refesh-token.module';
-import { DeviceInfoMiddleware } from './middleware/device-info.middleware';
+import { DeviceInfoMiddleware } from './core/middleware/device-info.middleware';
 import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { env } from './env';
+import { SharedModule } from './core/shared/shared.module';
+import { ContextGuard } from './guards/context.guard';
+import { HttpExceptionFilter } from './common/http-exception.filter';
+import { HandlerResultInterceptor } from './common/handler-result.interceptor';
 
 @Module({
   imports: [
@@ -27,11 +29,11 @@ import { APP_GUARD } from '@nestjs/core';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
         type: 'mysql',
-        host: config.get('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        database: config.get<string>('DB_DATABASE'),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
+        host: env.dbHost,
+        port: env.dbPort,
+        database: env.dbName,
+        username: env.dbUsername,
+        password: env.dbPassword,
         synchronize: process.env.NODE != 'production',
         migrationsRun: false,
         autoLoadEntities: true,
@@ -40,17 +42,6 @@ import { APP_GUARD } from '@nestjs/core';
         timezone: '+07:00',
         charset: 'utf8mb4_unicode_ci',
       }),
-    }),
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          ttl: minutes(1),
-          limit: 20,
-          blockDuration: minutes(1),
-        },
-      ],
-      errorMessage:
-        'Bạn đã gửi quá nhiều yêu cầu, vui lòng thử lại sau ít phút',
     }),
     SharedModule,
     AccountsModule,
@@ -62,7 +53,15 @@ import { APP_GUARD } from '@nestjs/core';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: ContextGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: HandlerResultInterceptor,
     },
   ],
 })

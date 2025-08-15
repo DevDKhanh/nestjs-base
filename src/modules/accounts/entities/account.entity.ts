@@ -5,7 +5,7 @@ import { BaseEntity } from 'src/common';
 @Entity({ name: 'accounts' })
 export class Account extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
 
   @Column({ type: 'varchar', length: 50, unique: true })
   username: string;

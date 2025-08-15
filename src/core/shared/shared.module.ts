@@ -7,25 +7,19 @@ import {
   WinstonModule,
   utilities as nestWinstonModuleUtilities,
 } from 'nest-winston';
-import { JwtStrategy } from 'src/guards/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { env } from 'src/env';
+import { ClsModule } from 'nestjs-cls';
 
 @Global()
 @Module({
   imports: [
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: config.get<string>('JWT_EXPIRATION'),
-        },
-      }),
-    }),
-    ConfigModule.forRoot({
-      isGlobal: true,
-      expandVariables: true,
+    JwtModule.register({
+      global: true,
+      publicKey: env.jwtPublicKey,
+      privateKey: env.jwtPrivateKey,
+      signOptions: { algorithm: env.jwtAlgorithm },
+      verifyOptions: { algorithms: [env.jwtAlgorithm] },
     }),
     WinstonModule.forRoot({
       transports: [
@@ -46,8 +40,14 @@ import { JwtModule } from '@nestjs/jwt';
         }),
       ),
     }),
+    ClsModule.forRoot({
+      global: true,
+      guard: {
+        mount: true,
+      },
+    }),
   ],
-  providers: [JwtStrategy],
-  exports: [JwtModule],
+  providers: [],
+  exports: [],
 })
 export class SharedModule {}

@@ -1,20 +1,14 @@
 import {
-  BadGatewayException,
-  BadRequestException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { AccountsService } from '../accounts/accounts.service';
 import { JwtService } from '@nestjs/jwt';
-import * as crypto from 'crypto';
 import { RefeshTokenService } from '../refesh-token/refesh-token.service';
 import { RefeshTokenDto } from './dto/refesh-token.dto';
-import { ConfigService } from '@nestjs/config';
+import { env } from 'src/env';
 
 @Injectable()
 export class AuthService {
@@ -24,15 +18,17 @@ export class AuthService {
     private readonly accountsService: AccountsService,
     private readonly refeshTokenService: RefeshTokenService,
     private jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
   async token(payload: any) {
     try {
-      const token = this.jwtService.sign(payload);
+      const token = this.jwtService.sign(payload, {
+        expiresIn: env.jwtExpireAfterMs,
+        secret: env.jwtPrivateKey,
+      });
       const refreshToken = this.jwtService.sign(payload, {
-        expiresIn: this.configService.get<string>('JWT_EXPIRATION_REFRESH'),
-        secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
+        expiresIn: env.jwtRefreshExpireAfterMs,
+        secret: env.jwtRefreshPrivateKey,
       });
 
       await this.refeshTokenService.saveRefeshToken(payload.id, refreshToken);
@@ -78,7 +74,7 @@ export class AuthService {
       }
 
       const verifyToken = await this.jwtService.verifyAsync(body.refeshToken, {
-        secret: this.configService.get<string>('JWT_SECRET_REFRESH'),
+        secret: env.jwtRefreshPrivateKey,
       });
 
       if (!verifyToken) {

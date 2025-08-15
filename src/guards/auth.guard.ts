@@ -1,63 +1,61 @@
 import {
   CanActivate,
   ExecutionContext,
-  Inject,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthGuard, PassportStrategy } from '@nestjs/passport';
-import { Observable } from 'rxjs';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { AccountsService } from '../modules/accounts/accounts.service';
+import { Reflector } from '@nestjs/core';
+import { ClsServiceManager } from 'nestjs-cls';
+import { JwtData } from 'src/common';
+import { DecoratorMetadata } from 'src/decorators/metadata.enum';
 
+/**
+ * Check if user has permission to call a specific route.
+ */
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private config: ConfigService) {
-    const jwtSecret = config.get<string>('JWT_SECRET');
-    if (!jwtSecret) {
-      throw new Error('JWT_SECRET is not defined in configuration');
+export class AuthGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const cls = ClsServiceManager.getClsService();
+    const jwtData = cls.get<JwtData>('jwt');
+    return this.checkRole(jwtData, context);
+  }
+
+  private checkRole(
+    jwtData: JwtData | undefined,
+    context: ExecutionContext,
+  ): boolean {
+    const requireAdmin = this.checkDecorator(
+      DecoratorMetadata.RequireAdminRole,
+      context,
+    );
+    const requireUser = this.checkDecorator(
+      DecoratorMetadata.RequireUserRole,
+      context,
+    );
+    const optionalUser = this.checkDecorator(
+      DecoratorMetadata.OptionalUser,
+      context,
+    );
+
+    if (!jwtData && (requireUser || requireAdmin)) {
+      throw new UnauthorizedException();
     }
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: jwtSecret,
-    });
-  }
-
-  async validate(payload: any) {
-    return payload;
-  }
-}
-
-@Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private accountService: AccountsService) {
-    super();
-  }
-
-  canActivate(context: ExecutionContext) {
-    return super.canActivate(context);
-  }
-
-  handleRequest(err, user, info): any {
-    if (err || !user) {
-      throw err || new UnauthorizedException('Không có quyền truy cập');
+    if ((requireUser && jwtData) || optionalUser) {
+      return true;
     }
+    throw new ForbiddenException();
+  }
 
-    // Check if the user exists in the database
-    const userFromDb = this.accountService.findById(user.id);
-    if (!userFromDb) {
-      throw new UnauthorizedException('Tài khoản không tồn tại');
-    }
-
-    return {
-      id: user.id,
-      username: user.username,
-      fullName: user.fullName,
-      email: user.email,
-      phone: user.phone,
-      role: user?.role,
-    };
+  private checkDecorator(
+    decoratorMetadata: string,
+    context: ExecutionContext,
+  ): boolean {
+    return (
+      this.reflector.get<boolean>(decoratorMetadata, context.getHandler()) ??
+      this.reflector.get<boolean>(decoratorMetadata, context.getClass())
+    );
   }
 }

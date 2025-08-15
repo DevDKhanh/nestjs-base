@@ -6,6 +6,7 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { HandlerResultInterceptor } from './common/handler-result.interceptor';
+import { env } from './env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -32,8 +33,8 @@ async function bootstrap() {
     methods: 'GET,PUT,POST,DELETE,UPDATE,OPTIONS',
   });
 
-  app.useGlobalInterceptors(new HandlerResultInterceptor());
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // app.useGlobalInterceptors(new HandlerResultInterceptor());
+  // app.useGlobalFilters(new HttpExceptionFilter());
 
   const configDocs = new DocumentBuilder()
     .setTitle('API N8 ADMIN')
@@ -56,7 +57,7 @@ async function bootstrap() {
     jsonDocumentUrl: '/api/swagger.json',
   });
 
-  await app.listen(3034);
-  console.log('Swagger Running: http://localhost:' + 3034 + '/swagger');
+  await app.listen(env.port);
+  console.log('Swagger Running: http://localhost:' + env.port + '/swagger');
 }
 bootstrap();
