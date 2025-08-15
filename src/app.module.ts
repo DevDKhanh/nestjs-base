@@ -15,12 +15,13 @@ import { LoggerMiddleware } from './core/middleware/logger.middleware';
 import { RefeshTokenModule } from './modules/refesh-token/refesh-token.module';
 import { DeviceInfoMiddleware } from './core/middleware/device-info.middleware';
 import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { env } from './env';
 import { SharedModule } from './core/shared/shared.module';
-import { ContextGuard } from './guards/context.guard';
+import { ContextGuard } from './core/guards/context.guard';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { HandlerResultInterceptor } from './common/handler-result.interceptor';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { HandlerResultInterceptor } from './common/handler-result.interceptor';
     AccountsModule,
     AuthModule,
     RefeshTokenModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
@@ -56,11 +58,11 @@ import { HandlerResultInterceptor } from './common/handler-result.interceptor';
       useClass: ContextGuard,
     },
     {
-      provide: APP_GUARD,
+      provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
     {
-      provide: APP_GUARD,
+      provide: APP_INTERCEPTOR,
       useClass: HandlerResultInterceptor,
     },
   ],

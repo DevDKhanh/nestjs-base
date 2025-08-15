@@ -1,10 +1,10 @@
 import { applyDecorators, SetMetadata, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../guards/auth.guard';
 import { DecoratorMetadata } from './metadata.enum';
+import { AuthGuard } from 'src/core/guards/auth.guard';
 
-export function OptionalUser(): ReturnType<typeof applyDecorators> {
+export function RequireUser(): ReturnType<typeof applyDecorators> {
   return applyDecorators(
-    SetMetadata(DecoratorMetadata.OptionalUser, true),
+    SetMetadata(DecoratorMetadata.RequireUserRole, true),
     UseGuards(AuthGuard),
   );
 }

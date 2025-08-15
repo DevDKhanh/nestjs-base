@@ -33,9 +33,6 @@ async function bootstrap() {
     methods: 'GET,PUT,POST,DELETE,UPDATE,OPTIONS',
   });
 
-  // app.useGlobalInterceptors(new HandlerResultInterceptor());
-  // app.useGlobalFilters(new HttpExceptionFilter());
-
   const configDocs = new DocumentBuilder()
     .setTitle('API N8 ADMIN')
     .setVersion('1.0')

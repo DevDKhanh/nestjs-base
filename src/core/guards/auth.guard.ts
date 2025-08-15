@@ -8,7 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ClsServiceManager } from 'nestjs-cls';
 import { JwtData } from 'src/common';
-import { DecoratorMetadata } from 'src/decorators/metadata.enum';
+import { DecoratorMetadata } from 'src/core/decorators/metadata.enum';
 
 /**
  * Check if user has permission to call a specific route.

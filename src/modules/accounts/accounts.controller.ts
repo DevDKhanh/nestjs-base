@@ -1,22 +1,11 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { UpdateAccountDto } from './dto/update-account.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { RequireUser } from 'src/decorators/require-user.decorator';
-import { Jwt } from 'src/decorators/jwt.decorator';
+
 import { JwtData } from 'src/common';
+import { Jwt } from 'src/core/decorators/jwt.decorator';
+import { RequireUser } from 'src/core/decorators/require-user.decorator';
 
 @Controller('accounts')
 export class AccountsController {

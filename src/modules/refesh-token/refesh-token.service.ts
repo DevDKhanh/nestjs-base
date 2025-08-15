@@ -15,7 +15,7 @@ export class RefeshTokenService {
   ) {}
 
   async saveRefeshToken(
-    userId: string,
+    userId: number,
     refeshToken: string,
     deviceId?: string,
   ) {
@@ -53,7 +53,7 @@ export class RefeshTokenService {
     }
   }
 
-  async validateRefeshToken(id: string, refeshToken: string) {
+  async validateRefeshToken(id: number, refeshToken: string) {
     try {
       const existingToken = await this.refeshTokenRepository.findOne({
         where: { account: { id } },

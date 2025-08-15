@@ -6,7 +6,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { BaseEntity } from 'src/common';
 import { Account } from 'src/modules/accounts/entities/account.entity';
 
